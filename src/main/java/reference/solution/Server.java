@@ -1,9 +1,14 @@
 package reference.solution;
 
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.net.URLEncodedUtils;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 
@@ -67,7 +72,23 @@ public class Server {
         if (parts.length < 2) return null;
 
         String method = parts[0];
-        String path = parts[1];
+        String fullPath = parts[1];
+
+        String path;
+        String queryString = null;
+
+        int positionOfChar = fullPath.indexOf('?');
+        if (positionOfChar != -1) {
+            path = fullPath.substring(0, positionOfChar);
+            queryString = fullPath.substring(positionOfChar + 1);
+        } else {
+            path = fullPath;
+        }
+
+        List<NameValuePair> params = Collections.emptyList(); // Если queryString пустой → params остаётся emptyList()
+        if (queryString != null && !queryString.isEmpty()) {
+            params = URLEncodedUtils.parse(queryString, StandardCharsets.UTF_8);
+        }
 
         Map<String, String> headers = new ConcurrentHashMap<>();
         String headerLine;
@@ -100,7 +121,7 @@ public class Server {
             body = new String(bodyChars, 0, read);
         }
 
-        return new Request(method, path, headers, body);
+        return new Request(method, path, headers, body, params);
     }
 
     private void sendResponse(BufferedOutputStream out, String status, String contentType, byte[] body) throws IOException {
