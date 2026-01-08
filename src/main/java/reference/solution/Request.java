@@ -12,14 +12,16 @@ public class Request {
     private final String path;
     private final Map<String, String> headers;
     private final String body;
-    private final List<NameValuePair> params;
+    private final List<NameValuePair> queryParams;
+    private final List<NameValuePair> postParams;
 
-    public Request(String method, String path, Map<String, String> headers, String body, List<NameValuePair> params) {
+    public Request(String method, String path, Map<String, String> headers, String body, List<NameValuePair> queryParams, List<NameValuePair> postParams) {
         this.method = method;
         this.path = path;
         this.headers = headers;
         this.body = body;
-        this.params = params;
+        this.queryParams = queryParams;
+        this.postParams = postParams;
     }
 
     public String method() {
@@ -40,7 +42,7 @@ public class Request {
 
     public String getQueryParam(String name) {
 
-        return params.stream()
+        return queryParams.stream()
                 .filter(p -> name.equals(p.getName()))
                 .map(NameValuePair::getValue)
                 .map(v -> v != null ? v : "")
@@ -51,7 +53,24 @@ public class Request {
 
     public String getQueryParams() {
 
-        return URLEncodedUtils.format(params, StandardCharsets.UTF_8);
+        return URLEncodedUtils.format(queryParams, StandardCharsets.UTF_8);
+
+    }
+
+    public String getPostParam(String name) {
+
+        return postParams.stream()
+                .filter(p -> name.equals(p.getName()))
+                .map(NameValuePair::getValue)
+                .map(v -> v != null ? v : "")
+                .findFirst()
+                .orElse(null);
+
+    }
+
+    public String getPostParams() {
+
+        return URLEncodedUtils.format(postParams, StandardCharsets.UTF_8);
 
     }
 

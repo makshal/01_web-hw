@@ -85,9 +85,9 @@ public class Server {
             path = fullPath;
         }
 
-        List<NameValuePair> params = Collections.emptyList(); // Если queryString пустой → params остаётся emptyList()
+        List<NameValuePair> queryParams = Collections.emptyList(); // Если queryString пустой → params остаётся emptyList()
         if (queryString != null && !queryString.isEmpty()) {
-            params = URLEncodedUtils.parse(queryString, StandardCharsets.UTF_8);
+            queryParams = URLEncodedUtils.parse(queryString, StandardCharsets.UTF_8);
         }
 
         Map<String, String> headers = new ConcurrentHashMap<>();
@@ -121,7 +121,13 @@ public class Server {
             body = new String(bodyChars, 0, read);
         }
 
-        return new Request(method, path, headers, body, params);
+        List<NameValuePair> postParams = Collections.emptyList();
+
+        if (headers.get("Content-Type") != null && headers.get("Content-Type").equals("x-www-form-urlencoded")) {
+            postParams = URLEncodedUtils.parse(body, StandardCharsets.UTF_8);
+        }
+
+        return new Request(method, path, headers, body, queryParams, postParams);
     }
 
     private void sendResponse(BufferedOutputStream out, String status, String contentType, byte[] body) throws IOException {

@@ -3,7 +3,7 @@ package reference.solution;
 import java.io.IOException;
 
 public class Main {
-    public static void main(String[] args){
+    public static void main(String[] args) {
         final var server = new Server();
 
         // добавление хендлеров (обработчиков)
@@ -25,8 +25,9 @@ public class Main {
             }
         });
 
-        server.addHandler("GET", "/world", (request, responseStream) -> {
-            var response = request.getQueryParams();
+        server.addHandler("POST", "/submit", ((request, responseStream) -> {
+            var postParams = request.getPostParams();
+            var response = postParams != null && !postParams.isEmpty() ? request.getPostParams() : "Error";
             try {
                 responseStream.write((
                         "HTTP/1.1 200 OK\r\n" +
@@ -40,7 +41,8 @@ public class Main {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        });
+        }));
+
 
         server.listen(9999);
     }
