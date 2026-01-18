@@ -1,17 +1,15 @@
 package reference.solution;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class Main {
-    public static void main(String[] args){
+    public static void main(String[] args) {
         final var server = new Server();
 
         // добавление хендлеров (обработчиков)
         server.addHandler("GET", "/hello", (request, responseStream) -> {
-            String response = "Hello, User!";
+            var langValue = request.getQueryParam("lang");
+            var response = langValue != null && !langValue.isEmpty() ? request.getQueryParam("lang") : "Error";
             try {
                 responseStream.write((
                         "HTTP/1.1 200 OK\r\n" +
@@ -27,8 +25,9 @@ public class Main {
             }
         });
 
-        server.addHandler("GET", "/messages", (request, responseStream) -> {
-            var response = "Your message was received";
+        server.addHandler("POST", "/submit", ((request, responseStream) -> {
+            var postParams = request.getPostParams();
+            var response = postParams != null && !postParams.isEmpty() ? request.getPostParams() : "Error";
             try {
                 responseStream.write((
                         "HTTP/1.1 200 OK\r\n" +
@@ -42,21 +41,8 @@ public class Main {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        });
-
-        server.addHandler("GET", "/image", ((request, responseStream) -> {
-            Path path = Paths.get("images.jpg");
-            var imageBytes = Files.readAllBytes(path);
-            responseStream.write((
-                    "HTTP/1.1 200 OK\r\n" +
-                            "Content-Type: image/jpeg\r\n" +
-                            "Content-Length: " + imageBytes.length + "\r\n" +
-                            "Connection: close\r\n" +
-                            "\r\n"
-            ).getBytes());
-            responseStream.write(imageBytes);
-            responseStream.flush();
         }));
+
 
         server.listen(9999);
     }
